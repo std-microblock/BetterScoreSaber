@@ -1,0 +1,50 @@
+._BSS_floatingWindow{
+    user-select: none;
+    position: fixed;
+    padding: 8px;
+    border-radius: 6px;
+    margin:4px;
+    box-shadow: -1px 2px 6px rgba(0, 0, 0, 0.288);
+    z-index: 10000;
+    min-width: 200px;
+    pointer-events: none;
+    min-height: 100px;
+    background: #252525;
+    color:white;
+    @keyframes fadeIn{
+        from{opacity: 0;transform: scale(1.2);margin-top: 50px;}
+        to{opacity: 1;transform: scale(1);}
+    }
+    animation: fadeIn 0.2s forwards;
+    .splitline{
+        height: 1px;
+        background: rgba(255, 255, 255, 0.185);
+    }
+    ._BSS_fW_title{
+        font-size: 18px;font-weight: 800;
+    }
+    .hScore{
+        color:rgb(60, 192, 60);
+    }
+    .lScore{
+        color: rgb(194, 99, 99);
+    }
+}
+
+._BSS_loading{
+    display: inline-block;
+    color:#dadada9a;
+    @keyframes loading {
+        0%{
+            // transform: rotate(0deg);
+            opacity: 0;
+        }
+        50%{
+            opacity: 1;
+        }
+        100%{
+            opacity: 0;
+        }
+    }
+    animation: loading 1s infinite;
+}
