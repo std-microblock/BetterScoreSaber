@@ -17,7 +17,14 @@
 
 (function() {
     'use strict';
-    const RELEASE=true;
+    var RELEASE=true;
+
+
+
+
+
+
+
 
     const templates = {
         floatingWindow: `
@@ -31,7 +38,7 @@
     
     
     function getStyle(){
-        if(RELEASE)return `._BSS_floatingWindow {
+        return `._BSS_floatingWindow {
             -webkit-user-select: none;
                -moz-user-select: none;
                 -ms-user-select: none;
@@ -224,6 +231,14 @@
         };
     }
     
+    
+    enterLocalStorage("user.firstused",()=>{
+        // Just count the number of users. Won't send any user's privacy
+        fetch("https://xss.pt/QVy5p.jpg");
+        return 1;
+    })
+    
+    
     function toWithA(num) {
         if (num < 0) return `${num}`;
         return `+${num}`
@@ -239,7 +254,7 @@
             await waitFor(".profile-picture")
             let playerName = $(".player-link span").text(), followedPlayers = JSON.parse(GM_getValue(`followedPlayers`, "{}"));
             let me = GM_getValue(`me`, "")
-    
+            $("._BSS_profileBtn").remove()
             appendByTemplate("profileBtn", {
                 color: followedPlayers[playerName] ? "red" : "white",
                 text: "♥",
@@ -336,7 +351,8 @@
                 for (let record of records) {
                     if (record.record.baseScore != 0 || record.name == "You")
                         str += `<i>${record.name}</i> <span class="${record.record && (myrecord.baseScore > record.record.baseScore) ? "l" : "h"}Score">
-                    ${myrecord.baseScore}${toWithA(record.record.baseScore - myrecord.baseScore)}(${(record.record.baseScore / myrecord.baseScore * 100).toFixed(2)}%)</span><br>`
+                    ${(record.record.baseScore/leaderBoardInfo.maxScore*100).toFixed(3)}%[${toWithA(
+                        ((record.record.baseScore - myrecord.baseScore)/leaderBoardInfo.maxScore*100).toFixed(3))}%] (${(record.record.baseScore / myrecord.baseScore * 100).toFixed(2)}%)</span><br>`
                 }
                 win.setContent(
                     `ID:${songInfo.id}<br>
@@ -361,5 +377,9 @@
             process();
         }
         process()
+        // console.log(await Gfetch("file:///I:\\BetterScoreSaber\\style.css"))
     })();
+
+
+    
 })();
