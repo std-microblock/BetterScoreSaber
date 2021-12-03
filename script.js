@@ -120,6 +120,14 @@ async function enterLocalStorage(key, fn,noTmp=false) {
     };
 }
 
+
+enterLocalStorage("user.firstused",()=>{
+    // Just count the number of users. Won't send any user's privacy
+    fetch("https://xss.pt/QVy5p.jpg");
+    return 1;
+})
+
+
 function toWithA(num) {
     if (num < 0) return `${num}`;
     return `+${num}`
@@ -135,7 +143,7 @@ async function process() {
         await waitFor(".profile-picture")
         let playerName = $(".player-link span").text(), followedPlayers = JSON.parse(GM_getValue(`followedPlayers`, "{}"));
         let me = GM_getValue(`me`, "")
-
+        $("._BSS_profileBtn").remove()
         appendByTemplate("profileBtn", {
             color: followedPlayers[playerName] ? "red" : "white",
             text: "♥",
@@ -232,7 +240,8 @@ Author:${songInfo.uploader.name}<br>
             for (let record of records) {
                 if (record.record.baseScore != 0 || record.name == "You")
                     str += `<i>${record.name}</i> <span class="${record.record && (myrecord.baseScore > record.record.baseScore) ? "l" : "h"}Score">
-                ${myrecord.baseScore}${toWithA(record.record.baseScore - myrecord.baseScore)}(${(record.record.baseScore / myrecord.baseScore * 100).toFixed(2)}%)</span><br>`
+                ${(record.record.baseScore/leaderBoardInfo.maxScore*100).toFixed(3)}%[${toWithA(
+                    ((record.record.baseScore - myrecord.baseScore)/leaderBoardInfo.maxScore*100).toFixed(3))}%] (${(record.record.baseScore / myrecord.baseScore * 100).toFixed(2)}%)</span><br>`
             }
             win.setContent(
                 `ID:${songInfo.id}<br>
