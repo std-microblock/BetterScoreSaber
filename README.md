@@ -26,7 +26,7 @@
 **Dolphin**: [Tampermonkey](https://play.google.com/store/apps/details?id=net.tampermonkey.dolphin)
 
 ### Ⅱ 安装脚本
-安装Tampermonkey后，[点击我下载&安装BetterScoreSaber](https://github.com/MicroCBer/BetterScoreSaber/raw/main/BetterScoreSaber.user.js)
+安装Tampermonkey后，[点击我下载&安装BetterScoreSaber](https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber/BetterScoreSaber.user.js)
 
 ## 截图
 ![](shot.png)
