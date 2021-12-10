@@ -158,13 +158,13 @@ function parseTemplate(templateName, classes) {
     return template
 }
 
-function appendByTemplate(templateName, classes, ele = document.body,before=0) {
+function appendByTemplate(templateName, classes, ele = document.body, before = 0) {
     let tmp = document.createElement("div");
     tmp.innerHTML = parseTemplate(templateName, classes);
     let id = "_tmp_id_" + Math.floor(Math.random() * 10000);
     tmp.classList.add(id)
     tmp.classList.add("_BSS_" + templateName)
-    if(before)ele.prepend(tmp)
+    if (before) ele.prepend(tmp)
     else ele.appendChild(tmp);
     let realele = document.querySelector("." + id);
     realele.classList.remove(id);
@@ -241,16 +241,24 @@ enterLocalStorage("user.firstused", () => {
 // Check update
 let lastUpd = enterLocalStorage("code.lastUpdateTime", () => { return -1 });
 // if ((new Date().getTime() - lastUpd) > 24 * 60 * 60 * 1000 * 2)
-    Gfetch("https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber/BetterScoreSaber.user.js").then((result) => {
-        let version=(/@version(.*)/).exec(result)[1].replace(/\s/g,"");
-        if(GM_info.script.version!=version){
-            appendByTemplate("announcement",{
-                image:"https://github.com/MicroCBer/BetterScoreSaber/raw/main/BetterScoreSaber.png",
-                text:`BetterScoreSaber有更新版本(目前：${GM_info.script.version}，最新：${version})！
-                <a href="https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber/BetterScoreSaber.user.js">点我更新</a>`
-            },undefined,1)
-        }
+function gfUpd(updUrl) {
+    return new Promise((rs,rj) => {
+        Gfetch(updUrl).then((result) => {
+            let version = (/@version(.*)/).exec(result)[1].replace(/\s/g, "");
+            if (GM_info.script.version != version) {
+                appendByTemplate("announcement", {
+                    image: "https://github.com/MicroCBer/BetterScoreSaber/raw/main/BetterScoreSaber.png",
+                    text: `BetterScoreSaber有更新版本(目前：${GM_info.script.version}，新版：${version})！
+                <a href="${updUrl}">点我更新</a>`
+                }, undefined, 1)
+            }else rs();
+        })
     })
+}
+gfUpd(`https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber/BetterScoreSaber.user.js`).then(()=>{
+    gfUpd(`https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber@0.${+GM_info.script.version.split(".")[1] + 1}/BetterScoreSaber.user.js`)
+})
+
 
 function toWithA(num) {
     if (num < 0) return `${num}`;
@@ -347,14 +355,14 @@ Author:${songInfo.uploader.name}<br>
                 records.push({
                     record:
                         await enterLocalStorage(`player.${playerName}.songs.${leaderboardId}.record`, async () => {
-                            try{
-                            let result = (await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${playerName}`)).json()).scores.filter((v) => {
-                                return v.leaderboardPlayerInfo.name == playerName
-                            })[0]
-                            if (result && result.leaderboardPlayerInfo.name == playerName) return result;
-                            }catch(e){}
+                            try {
+                                let result = (await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${playerName}`)).json()).scores.filter((v) => {
+                                    return v.leaderboardPlayerInfo.name == playerName
+                                })[0]
+                                if (result && result.leaderboardPlayerInfo.name == playerName) return result;
+                            } catch (e) { }
                             return { baseScore: -1 }
-                            
+
                         }, noTemp)
                     , name: playerName
                 })
