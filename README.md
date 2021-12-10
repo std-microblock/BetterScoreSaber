@@ -30,3 +30,4 @@
 
 ## 截图
 ![](shot.png)
+![](fixed_bad_request.png)
