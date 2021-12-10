@@ -2,6 +2,7 @@ const templates = {
     floatingWindow: `
             <div class="_BSS_fW_title">{title}</div>
             <div class="_BSS_fW_content">{content}</div>
+            <div class="_BSS_fW_tips">{tips}</div>
     `, profileBtn: `
     <button class="button {class} is-small is-dark mt-2" style="right: auto;top:{top};border-radius: 100%;font-weight:800;color:{color};" 
     title="{title}"><span class="icon is-small">{text}</span></button>
@@ -10,7 +11,90 @@ const templates = {
 
 
 function getStyle(){
-    if(window.RELEASE)return ``;
+    if(false)return `._BSS_floatingWindow {
+        -webkit-user-select: none;
+           -moz-user-select: none;
+            -ms-user-select: none;
+                user-select: none;
+        position: fixed;
+        padding: 8px;
+        border-radius: 6px;
+        margin: 4px;
+        box-shadow: -1px 2px 6px rgba(0, 0, 0, 0.288);
+        z-index: 10000;
+        min-width: 200px;
+        pointer-events: none;
+        min-height: 100px;
+        background: #252525;
+        color: white;
+        -webkit-animation: fadeIn 0.2s forwards;
+                animation: fadeIn 0.2s forwards;
+      }
+      @-webkit-keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(1.2);
+          margin-top: 50px;
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(1.2);
+          margin-top: 50px;
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      ._BSS_floatingWindow .splitline {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.185);
+      }
+      ._BSS_floatingWindow ._BSS_fW_title {
+        font-size: 18px;
+        font-weight: 800;
+      }
+      ._BSS_floatingWindow .hScore {
+        color: #3cc03c;
+      }
+      ._BSS_floatingWindow .lScore {
+        color: #c26363;
+      }
+      
+      ._BSS_loading {
+        display: inline-block;
+        color: #dadada9a;
+        -webkit-animation: loading 1s infinite;
+                animation: loading 1s infinite;
+      }
+      @-webkit-keyframes loading {
+        0% {
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+      @keyframes loading {
+        0% {
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }/*# sourceMappingURL=style.css.map */`;
     return GM_getResourceText("LOCAL_STYLE")
 }
 
@@ -73,6 +157,7 @@ addGlobalStyle(getStyle())
 class FloatingWindow {
     constructor(title, content) {
         this.classes = { title, content }
+        this.classes.tips=""
         this.fWin = appendByTemplate("floatingWindow", this.classes)
         this.fWin.style.left=mouse.x+"px";
         this.fWin.style.top=mouse.y+"px"
@@ -88,6 +173,10 @@ class FloatingWindow {
     }
     setContent(content) {
         this.classes.content = content
+        $(this.fWin).html(parseTemplate("floatingWindow", this.classes));
+    }
+    setTips(content) {
+        this.classes.tips = content
         $(this.fWin).html(parseTemplate("floatingWindow", this.classes));
     }
     remove() {
@@ -119,7 +208,7 @@ async function enterLocalStorage(key, fn,noTmp=false) {
         return result;
     };
 }
-
+GM_setValue(`me`,null);
 
 enterLocalStorage("user.firstused",()=>{
     // Just count the number of users. Won't send any user's privacy
@@ -232,6 +321,12 @@ Author:${songInfo.uploader.name}<br>
                     , name: playerName
                 })
             }
+
+            if(!me){
+                win.setTips("<a style='color:red;'>Please set your account first!</a>")
+                return;
+            }
+
             let myrecord = ((await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${me}`)).json()).filter((v) => {
                 return v.leaderboardPlayerInfo.name == me
             })[0]) || { baseScore: 0 }

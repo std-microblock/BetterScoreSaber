@@ -30,6 +30,7 @@
         floatingWindow: `
                 <div class="_BSS_fW_title">{title}</div>
                 <div class="_BSS_fW_content">{content}</div>
+                <div class="_BSS_fW_tips">{tips}</div>
         `, profileBtn: `
         <button class="button {class} is-small is-dark mt-2" style="right: auto;top:{top};border-radius: 100%;font-weight:800;color:{color};" 
         title="{title}"><span class="icon is-small">{text}</span></button>
@@ -184,6 +185,7 @@
     class FloatingWindow {
         constructor(title, content) {
             this.classes = { title, content }
+            this.classes.tips=""
             this.fWin = appendByTemplate("floatingWindow", this.classes)
             this.fWin.style.left=mouse.x+"px";
             this.fWin.style.top=mouse.y+"px"
@@ -199,6 +201,10 @@
         }
         setContent(content) {
             this.classes.content = content
+            $(this.fWin).html(parseTemplate("floatingWindow", this.classes));
+        }
+        setTips(content) {
+            this.classes.tips = content
             $(this.fWin).html(parseTemplate("floatingWindow", this.classes));
         }
         remove() {
@@ -230,7 +236,7 @@
             return result;
         };
     }
-    
+    GM_setValue(`me`,null);
     
     enterLocalStorage("user.firstused",()=>{
         // Just count the number of users. Won't send any user's privacy
@@ -343,6 +349,12 @@
                         , name: playerName
                     })
                 }
+    
+                if(!me){
+                    win.setTips("<a style='color:red;'>Please set your account first!</a>")
+                    return;
+                }
+    
                 let myrecord = ((await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${me}`)).json()).filter((v) => {
                     return v.leaderboardPlayerInfo.name == me
                 })[0]) || { baseScore: 0 }
@@ -379,7 +391,4 @@
         process()
         // console.log(await Gfetch("file:///I:\\BetterScoreSaber\\style.css"))
     })();
-
-
-    
 })();
