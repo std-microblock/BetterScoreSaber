@@ -208,7 +208,7 @@ async function enterLocalStorage(key, fn,noTmp=false) {
         return result;
     };
 }
-GM_setValue(`me`,null);
+
 
 enterLocalStorage("user.firstused",()=>{
     // Just count the number of users. Won't send any user's privacy
@@ -312,7 +312,7 @@ Author:${songInfo.uploader.name}<br>
                 records.push({
                     record:
                         await enterLocalStorage(`player.${playerName}.songs.${leaderboardId}.record`, async () => {
-                            let result = (await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${playerName}`)).json()).filter((v) => {
+                            let result = (await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${playerName}`)).json()).scores.filter((v) => {
                                 return v.leaderboardPlayerInfo.name == playerName
                             })[0]
                             if (result && result.leaderboardPlayerInfo.name == playerName) return result;
@@ -327,7 +327,7 @@ Author:${songInfo.uploader.name}<br>
                 return;
             }
 
-            let myrecord = ((await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${me}`)).json()).filter((v) => {
+            let myrecord = ((await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${me}`)).json()).scores.filter((v) => {
                 return v.leaderboardPlayerInfo.name == me
             })[0]) || { baseScore: 0 }
             let str = ''

@@ -19,13 +19,6 @@
     'use strict';
     var RELEASE=true;
 
-
-
-
-
-
-
-
     const templates = {
         floatingWindow: `
                 <div class="_BSS_fW_title">{title}</div>
@@ -39,7 +32,7 @@
     
     
     function getStyle(){
-        return `._BSS_floatingWindow {
+        if(true)return `._BSS_floatingWindow {
             -webkit-user-select: none;
                -moz-user-select: none;
                 -ms-user-select: none;
@@ -236,7 +229,7 @@
             return result;
         };
     }
-    GM_setValue(`me`,null);
+    
     
     enterLocalStorage("user.firstused",()=>{
         // Just count the number of users. Won't send any user's privacy
@@ -340,7 +333,7 @@
                     records.push({
                         record:
                             await enterLocalStorage(`player.${playerName}.songs.${leaderboardId}.record`, async () => {
-                                let result = (await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${playerName}`)).json()).filter((v) => {
+                                let result = (await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${playerName}`)).json()).scores.filter((v) => {
                                     return v.leaderboardPlayerInfo.name == playerName
                                 })[0]
                                 if (result && result.leaderboardPlayerInfo.name == playerName) return result;
@@ -355,7 +348,7 @@
                     return;
                 }
     
-                let myrecord = ((await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${me}`)).json()).filter((v) => {
+                let myrecord = ((await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${me}`)).json()).scores.filter((v) => {
                     return v.leaderboardPlayerInfo.name == me
                 })[0]) || { baseScore: 0 }
                 let str = ''
