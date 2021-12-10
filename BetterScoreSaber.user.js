@@ -12,13 +12,14 @@
 // @grant        GM_download
 // @grant        GM_getResourceText
 // @grant        GM_setValue
+// @grant        GM_info
+// @connect      cdn.jsdelivr.net
 // @grant        GM_getValue
 // ==/UserScript==
 
 (function() {
     'use strict';
     var RELEASE=true;
-
     const templates = {
         floatingWindow: `
                 <div class="_BSS_fW_title">{title}</div>
@@ -27,12 +28,13 @@
         `, profileBtn: `
         <button class="button {class} is-small is-dark mt-2" style="right: auto;top:{top};border-radius: 100%;font-weight:800;color:{color};" 
         title="{title}"><span class="icon is-small">{text}</span></button>
-        `
+        `, announcement: `<div class="announcement" style="">
+       <span>{text}</span></div>`
     }
     
     
-    function getStyle(){
-        if(true)return `._BSS_floatingWindow {
+    function getStyle() {
+        if (true) return `._BSS_floatingWindow {
             -webkit-user-select: none;
                -moz-user-select: none;
                 -ms-user-select: none;
@@ -115,15 +117,34 @@
             100% {
               opacity: 0;
             }
+          }
+          
+          ._BSS_announcement {
+            background: #242424ad;
+            -webkit-backdrop-filter: blur(20px);
+                    backdrop-filter: blur(20px);
+            color: white;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+            height: 30px;
+            padding: 20px;
+            border-radius: 0px 0px 4px 4px;
+          }
+          ._BSS_announcement .announcement {
+            float: left;
           }/*# sourceMappingURL=style.css.map */`;
         return GM_getResourceText("LOCAL_STYLE")
     }
     
-    let mouse={x:0,y:0}
+    let mouse = { x: 0, y: 0 }
     
-    addEventListener("mousemove",(e)=>{
-        mouse.x=e.clientX
-        mouse.y=e.clientY + document.body.scrollTop
+    addEventListener("mousemove", (e) => {
+        mouse.x = e.clientX
+        mouse.y = e.clientY + document.body.scrollTop
     })
     
     
@@ -159,13 +180,14 @@
         return template
     }
     
-    function appendByTemplate(templateName, classes, ele = document.body) {
+    function appendByTemplate(templateName, classes, ele = document.body,before=0) {
         let tmp = document.createElement("div");
         tmp.innerHTML = parseTemplate(templateName, classes);
         let id = "_tmp_id_" + Math.floor(Math.random() * 10000);
         tmp.classList.add(id)
         tmp.classList.add("_BSS_" + templateName)
-        ele.appendChild(tmp);
+        if(before)ele.prepend(tmp)
+        else ele.appendChild(tmp);
         let realele = document.querySelector("." + id);
         realele.classList.remove(id);
         return realele;
@@ -178,10 +200,10 @@
     class FloatingWindow {
         constructor(title, content) {
             this.classes = { title, content }
-            this.classes.tips=""
+            this.classes.tips = ""
             this.fWin = appendByTemplate("floatingWindow", this.classes)
-            this.fWin.style.left=mouse.x+"px";
-            this.fWin.style.top=mouse.y+"px"
+            this.fWin.style.left = mouse.x + "px";
+            this.fWin.style.top = mouse.y + "px"
             addEventListener("mousemove", (e) => {
                 this.fWin.style.left = e.clientX + "px"
                 this.fWin.style.top = e.clientY + document.body.scrollTop + "px"
@@ -221,8 +243,8 @@
     
     }
     
-    async function enterLocalStorage(key, fn,noTmp=false) {
-        if ((!noTmp)&&(GM_getValue(key, "")!="")) return JSON.parse(GM_getValue(key));
+    async function enterLocalStorage(key, fn, noTmp = false) {
+        if ((!noTmp) && (GM_getValue(key, "") != "")) return JSON.parse(GM_getValue(key));
         else {
             let result = await fn();
             GM_setValue(key, JSON.stringify(result))
@@ -231,12 +253,26 @@
     }
     
     
-    enterLocalStorage("user.firstused",()=>{
+    enterLocalStorage("user.firstused", () => {
         // Just count the number of users. Won't send any user's privacy
         fetch("https://xss.pt/QVy5p.jpg");
         return 1;
     })
     
+    
+    // Check update
+    let lastUpd = enterLocalStorage("code.lastUpdateTime", () => { return -1 });
+    // if ((new Date().getTime() - lastUpd) > 24 * 60 * 60 * 1000 * 2)
+        Gfetch("https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber/BetterScoreSaber.user.js").then((result) => {
+            let version=(/@version(.*)/).exec(result)[1].replace(/\s/g,"");
+            if(GM_info.script.version!=version){
+                appendByTemplate("announcement",{
+                    image:"https://github.com/MicroCBer/BetterScoreSaber/raw/main/BetterScoreSaber.png",
+                    text:`BetterScoreSaber有更新版本(目前：${GM_info.script.version}，最新：${version})！
+                    <a href="https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber/BetterScoreSaber.user.js">点我更新</a>`
+                },undefined,1)
+            }
+        })
     
     function toWithA(num) {
         if (num < 0) return `${num}`;
@@ -279,7 +315,7 @@
             }
     
             await waitFor(".songs");
-            $(".gridTable.songs").delegate(".song-container", "mouseenter", async function createWin (_,noTemp=0) {
+            $(".gridTable.songs").delegate(".song-container", "mouseenter", async function createWin(_, noTemp = 0) {
                 let win = new FloatingWindow($(this).find(".song-name").text(), `<div class="_BSS_loading">Loading...</div>`)
                 let leaderboardId = $(this).find(".song-info").find("a").attr("href").split("/")[2]
                 let ehandle = -1;
@@ -291,10 +327,10 @@
                 }
                 let leaderBoardInfo = await enterLocalStorage(`leaderBoardInfo.${leaderboardId}.info`, async function () {
                     return await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/info`)).json();
-                },noTemp)
+                }, noTemp)
                 let songInfo = await enterLocalStorage(`leaderBoardInfo.${leaderboardId}.beatsaver`, async function () {
                     return JSON.parse(await Gfetch(`https://beatsaver.com/api/maps/hash/${leaderBoardInfo.songHash}`));
-                },noTemp)
+                }, noTemp)
                 win.setContent(
                     `ID:${songInfo.id}<br>
     Author:${songInfo.uploader.name}<br>
@@ -313,14 +349,14 @@
                 addEventListener("keypress", (e) => {
                     if (win.removed) return;
                     if (e.code == "Space") {
-                        
-                            e.preventDefault()
-                            navigator.clipboard.writeText(`!bsr ${songInfo.id}`)
-                            win.setTitle("bsr key copied!");
-                        
+    
+                        e.preventDefault()
+                        navigator.clipboard.writeText(`!bsr ${songInfo.id}`)
+                        win.setTitle("bsr key copied!");
+    
                     }
-                    if(e.code=="KeyR"){
-                        createWin.call(this,_,1);
+                    if (e.code == "KeyR") {
+                        createWin.call(this, _, 1);
                         win.remove();
                     }
                 })
@@ -333,17 +369,20 @@
                     records.push({
                         record:
                             await enterLocalStorage(`player.${playerName}.songs.${leaderboardId}.record`, async () => {
+                                try{
                                 let result = (await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${playerName}`)).json()).scores.filter((v) => {
                                     return v.leaderboardPlayerInfo.name == playerName
                                 })[0]
                                 if (result && result.leaderboardPlayerInfo.name == playerName) return result;
-                                return { baseScore: 0 }
-                            },noTemp)
+                                }catch(e){}
+                                return { baseScore: -1 }
+                                
+                            }, noTemp)
                         , name: playerName
                     })
                 }
     
-                if(!me){
+                if (!me) {
                     win.setTips("<a style='color:red;'>Please set your account first!</a>")
                     return;
                 }
@@ -356,8 +395,8 @@
                 for (let record of records) {
                     if (record.record.baseScore != 0 || record.name == "You")
                         str += `<i>${record.name}</i> <span class="${record.record && (myrecord.baseScore > record.record.baseScore) ? "l" : "h"}Score">
-                    ${(record.record.baseScore/leaderBoardInfo.maxScore*100).toFixed(3)}%[${toWithA(
-                        ((record.record.baseScore - myrecord.baseScore)/leaderBoardInfo.maxScore*100).toFixed(3))}%] (${(record.record.baseScore / myrecord.baseScore * 100).toFixed(2)}%)</span><br>`
+                    ${(record.record.baseScore / leaderBoardInfo.maxScore * 100).toFixed(3)}%[${toWithA(
+                            ((record.record.baseScore - myrecord.baseScore) / leaderBoardInfo.maxScore * 100).toFixed(3))}%] (${(record.record.baseScore / myrecord.baseScore * 100).toFixed(2)}%)</span><br>`
                 }
                 win.setContent(
                     `ID:${songInfo.id}<br>

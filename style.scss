@@ -48,3 +48,21 @@
     }
     animation: loading 1s infinite;
 }
+
+._BSS_announcement{
+    background: #242424ad ;
+    backdrop-filter: blur(20px);
+    color: white;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    height: 30px;
+    padding: 20px;
+    border-radius: 0px 0px 4px 4px;
+    .announcement{
+        float: left;
+    }
+}

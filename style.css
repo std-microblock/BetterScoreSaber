@@ -81,4 +81,23 @@
   100% {
     opacity: 0;
   }
+}
+
+._BSS_announcement {
+  background: #242424ad;
+  -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(20px);
+  color: white;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  height: 30px;
+  padding: 20px;
+  border-radius: 0px 0px 4px 4px;
+}
+._BSS_announcement .announcement {
+  float: left;
 }/*# sourceMappingURL=style.css.map */
