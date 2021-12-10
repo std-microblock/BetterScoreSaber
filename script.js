@@ -12,7 +12,8 @@ const templates = {
 
 
 function getStyle() {
-    if (false) return `._BSS_floatingWindow {
+    if(false)//;
+    return `._BSS_floatingWindow {
         -webkit-user-select: none;
            -moz-user-select: none;
             -ms-user-select: none;
@@ -242,21 +243,23 @@ enterLocalStorage("user.firstused", () => {
 let lastUpd = enterLocalStorage("code.lastUpdateTime", () => { return -1 });
 // if ((new Date().getTime() - lastUpd) > 24 * 60 * 60 * 1000 * 2)
 function gfUpd(updUrl) {
-    return new Promise((rs,rj) => {
+    return new Promise((rs, rj) => {
         Gfetch(updUrl).then((result) => {
-            let version = (/@version(.*)/).exec(result)[1].replace(/\s/g, "");
-            if (GM_info.script.version != version) {
+            let version = (/@version(.*)/).exec(result)[1].replace(/\s/g, ""), rv = parseFloat(version.split("."));
+            if (parseFloat(GM_info.script.version) < version) {
                 appendByTemplate("announcement", {
                     image: "https://github.com/MicroCBer/BetterScoreSaber/raw/main/BetterScoreSaber.png",
                     text: `BetterScoreSaber有更新版本(目前：${GM_info.script.version}，新版：${version})！
                 <a href="${updUrl}">点我更新</a>`
                 }, undefined, 1)
-            }else rs();
+            } else rs();
         })
     })
 }
-gfUpd(`https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber/BetterScoreSaber.user.js`).then(()=>{
-    gfUpd(`https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber@0.${+GM_info.script.version.split(".")[1] + 1}/BetterScoreSaber.user.js`)
+gfUpd(`https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber@0.${+GM_info.script.version.split(".")[1] + 1}/BetterScoreSaber.user.js`).then(() => {
+    gfUpd(`https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber/BetterScoreSaber.user.js`).then(() => {
+        gfUpd(`https://github.com/MicroCBer/BetterScoreSaber/raw/main/BetterScoreSaber.user.js`)
+    })
 })
 
 

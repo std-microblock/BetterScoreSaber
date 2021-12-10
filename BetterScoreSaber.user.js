@@ -17,9 +17,9 @@
 // @grant        GM_getValue
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
-   
+
 
 
 
@@ -43,8 +43,8 @@
         `, announcement: `<div class="announcement" style="">
        <span>{text}</span></div>`
     }
-    
-    
+
+
     function getStyle() {
         return `._BSS_floatingWindow {
             -webkit-user-select: none;
@@ -151,16 +151,16 @@
           }/*# sourceMappingURL=style.css.map */`;
         return GM_getResourceText("LOCAL_STYLE")
     }
-    
+
     let mouse = { x: 0, y: 0 }
-    
+
     addEventListener("mousemove", (e) => {
         mouse.x = e.clientX
         mouse.y = e.clientY + document.body.scrollTop
     })
-    
-    
-    
+
+
+
     function Gfetch(url) {
         return new Promise((resolve, reject) => {
             GM_xmlhttpRequest({
@@ -175,7 +175,7 @@
             });
         })
     }
-    
+
     function addGlobalStyle(css) {
         var head, style;
         head = document.getElementsByTagName('head')[0];
@@ -185,13 +185,13 @@
         style.innerHTML = css//.replace(/;/g, ' !important;');
         head.appendChild(style);
     }
-    
+
     function parseTemplate(templateName, classes) {
         let template = templates[templateName] || "";
         for (let name in classes) while (template.includes(`{${name}}`)) template = template.replace(`{${name}}`, classes[name]);
         return template
     }
-    
+
     function appendByTemplate(templateName, classes, ele = document.body, before = 0) {
         let tmp = document.createElement("div");
         tmp.innerHTML = parseTemplate(templateName, classes);
@@ -204,11 +204,11 @@
         realele.classList.remove(id);
         return realele;
     }
-    
-    
+
+
     addGlobalStyle(getStyle())
-    
-    
+
+
     class FloatingWindow {
         constructor(title, content) {
             this.classes = { title, content }
@@ -242,7 +242,7 @@
             }, 190)
         }
     }
-    
+
     function waitFor(selector) {
         return new Promise((rs) => {
             let id = setInterval(() => {
@@ -252,9 +252,9 @@
                 }
             }, 20)
         })
-    
+
     }
-    
+
     async function enterLocalStorage(key, fn, noTmp = false) {
         if ((!noTmp) && (GM_getValue(key, "") != "")) return JSON.parse(GM_getValue(key));
         else {
@@ -263,50 +263,50 @@
             return result;
         };
     }
-    
-    
+
+
     enterLocalStorage("user.firstused", () => {
         // Just count the number of users. Won't send any user's privacy
         fetch("https://xss.pt/QVy5p.jpg");
         return 1;
     })
-    
-    
+
+
     // Check update
     let lastUpd = enterLocalStorage("code.lastUpdateTime", () => { return -1 });
     // if ((new Date().getTime() - lastUpd) > 24 * 60 * 60 * 1000 * 2)
     function gfUpd(updUrl) {
-        return new Promise((rs,rj) => {
+        return new Promise((rs, rj) => {
             Gfetch(updUrl).then((result) => {
-                let version = (/@version(.*)/).exec(result)[1].replace(/\s/g, "");
-                if (GM_info.script.version != version) {
+                let version = (/@version(.*)/).exec(result)[1].replace(/\s/g, ""),rv=parseFloat(version.split("."));
+                if (parseFloat(GM_info.script.version)<version) {
                     appendByTemplate("announcement", {
                         image: "https://github.com/MicroCBer/BetterScoreSaber/raw/main/BetterScoreSaber.png",
                         text: `BetterScoreSaber有更新版本(目前：${GM_info.script.version}，新版：${version})！
                     <a href="${updUrl}">点我更新</a>`
                     }, undefined, 1)
-                }else rs();
+                } else rs();
             })
         })
     }
-    gfUpd(`https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber/BetterScoreSaber.user.js`).then(()=>{
-        gfUpd(`https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber@0.${+GM_info.script.version.split(".")[1] + 1}/BetterScoreSaber.user.js`).then(()=>{
+    gfUpd(`https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber@0.${+GM_info.script.version.split(".")[1] + 1}/BetterScoreSaber.user.js`).then(() => {
+        gfUpd(`https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber/BetterScoreSaber.user.js`).then(() => {
             gfUpd(`https://github.com/MicroCBer/BetterScoreSaber/raw/main/BetterScoreSaber.user.js`)
         })
     })
-    
-    
+
+
     function toWithA(num) {
         if (num < 0) return `${num}`;
         return `+${num}`
     }
-    
+
     async function process() {
         let pathName = document.location.pathname
         function match(url, fn = () => { }) {
             if (pathName.startsWith(url)) fn.call();
         }
-    
+
         match("/u/", async () => {
             await waitFor(".profile-picture")
             let playerName = $(".player-link span").text(), followedPlayers = JSON.parse(GM_getValue(`followedPlayers`, "{}"));
@@ -335,7 +335,7 @@
                 $(".isMe")[0].style.color = `${me == playerName ? "red" : "white"}`
                 GM_setValue(`me`, me);
             }
-    
+
             await waitFor(".songs");
             $(".gridTable.songs").delegate(".song-container", "mouseenter", async function createWin(_, noTemp = 0) {
                 let win = new FloatingWindow($(this).find(".song-name").text(), `<div class="_BSS_loading">Loading...</div>`)
@@ -363,19 +363,19 @@
     <b>Friends</b><br>
     <div class="_BSS_loading">Loading...</div><br>`)
                 this.oncontextmenu = (e) => {
-    
-    
+
+
                     e.preventDefault();
                     window.open(`https://beatsaver.com/maps/${songInfo.id}`)
                 }
                 addEventListener("keypress", (e) => {
                     if (win.removed) return;
                     if (e.code == "Space") {
-    
+
                         e.preventDefault()
                         navigator.clipboard.writeText(`!bsr ${songInfo.id}`)
                         win.setTitle("bsr key copied!");
-    
+
                     }
                     if (e.code == "KeyR") {
                         createWin.call(this, _, 1);
@@ -398,17 +398,17 @@
                                     if (result && result.leaderboardPlayerInfo.name == playerName) return result;
                                 } catch (e) { }
                                 return { baseScore: -1 }
-    
+
                             }, noTemp)
                         , name: playerName
                     })
                 }
-    
+
                 if (!me) {
                     win.setTips("<a style='color:red;'>Please set your account first!</a>")
                     return;
                 }
-    
+
                 let myrecord = ((await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${me}`)).json()).scores.filter((v) => {
                     return v.leaderboardPlayerInfo.name == me
                 })[0]) || { baseScore: 0 }
@@ -433,8 +433,8 @@
             })
         })
     }
-    
-    
+
+
     !(async function __main__() {
         // Hook Pushstate
         let _pushState = history.pushState;
