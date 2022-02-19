@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BetterScoreSaber
 // @namespace    https://github.com/MicroCBer
-// @version      0.5
+// @version      0.6
 // @description  Add some features to ScoreSaber
 // @author       MicroBlock
 // @match        https://scoresaber.com/**
@@ -278,8 +278,8 @@
     function gfUpd(updUrl) {
         return new Promise((rs, rj) => {
             Gfetch(updUrl).then((result) => {
-                let version = (/@version(.*)/).exec(result)[1].replace(/\s/g, ""),rv=parseFloat(version.split("."));
-                if (parseFloat(GM_info.script.version)<version) {
+                let version = (/@version(.*)/).exec(result)[1].replace(/\s/g, ""), rv = parseFloat(version.split("."));
+                if (parseFloat(GM_info.script.version) < version) {
                     appendByTemplate("announcement", {
                         image: "https://github.com/MicroCBer/BetterScoreSaber/raw/main/BetterScoreSaber.png",
                         text: `BetterScoreSaber有更新版本(目前：${GM_info.script.version}，新版：${version})！
@@ -299,6 +299,84 @@
     function toWithA(num) {
         if (num < 0) return `${num}`;
         return `+${num}`
+    }
+
+    function getAcc(record, leaderBoardInfo, songInfo) {
+        let baseScore = record?.baseScore;
+        let maxScore = leaderBoardInfo.maxScore;
+
+        if (!baseScore || baseScore === -1) {
+            return 0;
+        }
+
+        if (leaderBoardInfo.ranked) {
+            return baseScore / maxScore * 100;
+        }
+
+        let leaderboardId = leaderBoardInfo.id;
+        let diffIndex = leaderBoardInfo.difficulties.findIndex(d => d.leaderboardId === leaderboardId)
+
+        if (diffIndex === -1) {
+            return 0;
+        }
+
+        let diff = songInfo?.versions[0]?.diffs[diffIndex];
+
+        if (diff == null) {
+            return 0;
+        }
+
+        let notes = diff.notes;
+
+        if (notes > 13) {
+            // maxScore = (notes * 8 - 63) * 115;
+            maxScore = notes * 920 - 7245;
+        } else if (notes > 5) {
+            // maxScore = ((notes - 5) * 4 + 9) * 115;
+            maxScore = notes * 460 - 1265;
+        } else if (notes > 1) {
+            // maxScore = ((notes - 1) * 2 + 1) * 115;
+            maxScore = notes * 230 - 115;
+        }
+
+        return baseScore / maxScore * 100;
+    }
+
+    async function showAcc() {
+        await new Promise((resolve) => {
+            setTimeout(resolve, 1000);
+        })
+
+        let playerName = $(".player-link").attr("title");
+        let playerId = $(".player-link").attr("href").split("/").slice(-1);
+
+        $(".songs").find(".table-item").each(async function (index, item) {
+
+            let leaderboardId = $(item).find(".song-info").find("a").attr("href").split("/")[2];
+
+            let leaderBoardInfo = await enterLocalStorage(`leaderBoardInfo.${leaderboardId}.info`, async function () {
+                return await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/info`)).json();
+            }, 0);
+
+            console.log(`${leaderboardId}: ${!leaderBoardInfo.maxScore}`)
+
+            if (!leaderBoardInfo.maxScore) {
+                let songInfo = await enterLocalStorage(`leaderBoardInfo.${leaderboardId}.beatsaver`, async function () {
+                    return JSON.parse(await Gfetch(`https://beatsaver.com/api/maps/hash/${leaderBoardInfo.songHash}`));
+                }, 0);
+
+                let record = ((await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${playerName}`)).json()).scores.filter((v) => {
+                    return v.leaderboardPlayerInfo.id == playerId
+                })[0]) || { baseScore: 0 };
+
+
+                let acc = getAcc(record, leaderBoardInfo, songInfo);
+
+                console.log(`${songInfo.id}:${acc}`)
+
+                $(item).find(".scoreInfo ").children().prepend(`<span title="Accuracy" class="stat acc svelte-1hsacpa">${acc.toFixed(2)}%</span>`);
+            }
+        });
     }
 
     async function process() {
@@ -412,13 +490,19 @@
                 let myrecord = ((await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${me}`)).json()).scores.filter((v) => {
                     return v.leaderboardPlayerInfo.name == me
                 })[0]) || { baseScore: 0 }
+
+                let myAcc = getAcc(myrecord, leaderBoardInfo, songInfo);
+
                 let str = ''
                 records.unshift({ record: myrecord, name: "You" })
                 for (let record of records) {
-                    if (record.record.baseScore != 0 || record.name == "You")
+
+                    let acc = getAcc(record.record, leaderBoardInfo, songInfo);
+
+                    if (record.record.baseScore != -1 || record.name == "You")
                         str += `<i>${record.name}</i> <span class="${record.record && (myrecord.baseScore > record.record.baseScore) ? "l" : "h"}Score">
-                    ${(record.record.baseScore / leaderBoardInfo.maxScore * 100).toFixed(3)}%[${toWithA(
-                            ((record.record.baseScore - myrecord.baseScore) / leaderBoardInfo.maxScore * 100).toFixed(3))}%] (${(record.record.baseScore / myrecord.baseScore * 100).toFixed(2)}%)</span><br>`
+                    ${(acc).toFixed(3)}%[${toWithA(
+                            (acc - myAcc).toFixed(3))}%] (${(record.record.baseScore / myrecord.baseScore * 100).toFixed(2)}%)</span><br>`
                 }
                 win.setContent(
                     `ID:${songInfo.id}<br>
@@ -432,6 +516,9 @@
     ${str}`)
             })
         })
+
+
+        await showAcc();
     }
 
 
