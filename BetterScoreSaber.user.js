@@ -337,6 +337,10 @@
         } else if (notes > 1) {
             // maxScore = ((notes - 1) * 2 + 1) * 115;
             maxScore = notes * 230 - 115;
+        } else if (notes === 1) {
+            maxScore = 115
+        } else {
+            return 0
         }
 
         return baseScore / maxScore * 100;
