@@ -351,34 +351,36 @@
             setTimeout(resolve, 1000);
         })
 
+        await waitFor(".player-link");
+
         let playerName = $(".player-link").attr("title");
         let playerId = $(".player-link").attr("href").split("/").slice(-1);
 
         $(".songs").find(".table-item").each(async function (index, item) {
 
-            let leaderboardId = $(item).find(".song-info").find("a").attr("href").split("/")[2];
+            if (!$(item).find('.acc').length) {
+                let leaderboardId = $(item).find(".song-info").find("a").attr("href").split("/")[2];
 
-            let leaderBoardInfo = await enterLocalStorage(`leaderBoardInfo.${leaderboardId}.info`, async function () {
-                return await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/info`)).json();
-            }, 0);
-
-            console.log(`${leaderboardId}: ${!leaderBoardInfo.maxScore}`)
-
-            if (!leaderBoardInfo.maxScore) {
-                let songInfo = await enterLocalStorage(`leaderBoardInfo.${leaderboardId}.beatsaver`, async function () {
-                    return JSON.parse(await Gfetch(`https://beatsaver.com/api/maps/hash/${leaderBoardInfo.songHash}`));
+                let leaderBoardInfo = await enterLocalStorage(`leaderBoardInfo.${leaderboardId}.info`, async function () {
+                    return await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/info`)).json();
                 }, 0);
 
-                let record = ((await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${playerName}`)).json()).scores.filter((v) => {
-                    return v.leaderboardPlayerInfo.id == playerId
-                })[0]) || { baseScore: 0 };
+                if (!leaderBoardInfo.maxScore) {
+                    let songInfo = await enterLocalStorage(`leaderBoardInfo.${leaderboardId}.beatsaver`, async function () {
+                        return JSON.parse(await Gfetch(`https://beatsaver.com/api/maps/hash/${leaderBoardInfo.songHash}`));
+                    }, 0);
+
+                    let record = ((await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${playerName}`)).json()).scores.filter((v) => {
+                        return v.leaderboardPlayerInfo.id == playerId
+                    })[0]) || { baseScore: 0 };
 
 
-                let acc = getAcc(record, leaderBoardInfo, songInfo);
+                    let acc = getAcc(record, leaderBoardInfo, songInfo);
 
-                console.log(`${songInfo.id}:${acc}`)
-
-                $(item).find(".scoreInfo ").children().prepend(`<span title="Accuracy" class="stat acc svelte-1hsacpa">${acc.toFixed(2)}%</span>`);
+                    if (acc > 0) {
+                        $(item).find(".scoreInfo ").children().prepend(`<span title="Accuracy" class="stat acc svelte-1hsacpa">${acc.toFixed(2)}%</span>`);
+                    }
+                }
             }
         });
     }
