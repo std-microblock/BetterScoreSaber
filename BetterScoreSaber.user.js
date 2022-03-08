@@ -493,7 +493,7 @@
                     return;
                 }
 
-                let myrecord = ((await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${me}`)).json()).scores.filter((v) => {
+                let myrecord = ((await (await fetch(`https://scoresaber.com/api/leaderboard/by-id/${leaderboardId}/scores?page=1&search=${me}`)).json()).scores?.filter((v) => {
                     return v.leaderboardPlayerInfo.name == me
                 })[0]) || { baseScore: 0 }
 
@@ -505,10 +505,14 @@
 
                     let acc = getAcc(record.record, leaderBoardInfo, songInfo);
 
-                    if (record.record.baseScore != -1 || record.name == "You")
+                    if (record.record.baseScore != -1 || record.name == "You") {
+                        let rateStr = myrecord.baseScore ?
+                            `[${toWithA((acc - myAcc).toFixed(3))}%] (${(record.record.baseScore / myrecord.baseScore * 100).toFixed(2)}%)` : ''
+
                         str += `<i>${record.name}</i> <span class="${record.record && (myrecord.baseScore > record.record.baseScore) ? "l" : "h"}Score">
-                    ${(acc).toFixed(3)}%[${toWithA(
-                            (acc - myAcc).toFixed(3))}%] (${(record.record.baseScore / myrecord.baseScore * 100).toFixed(2)}%)</span><br>`
+                            ${(acc).toFixed(3)}%${rateStr}</span><br>`
+                    }
+
                 }
                 win.setContent(
                     `ID:${songInfo.id}<br>
