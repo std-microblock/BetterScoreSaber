@@ -30,5 +30,5 @@
 安装Tampermonkey后，[点击我下载&安装BetterScoreSaber](https://cdn.jsdelivr.net/gh/MicroCBer/BetterScoreSaber/BetterScoreSaber.user.js)
 
 ## 截图
-![](shot.png)
+![](Snipaste_2022-03-12_11-35-36.png)
 ![](fixed_bad_request.png)
