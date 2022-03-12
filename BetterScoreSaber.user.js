@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BetterScoreSaber
 // @namespace    https://github.com/MicroCBer
-// @version      0.7
+// @version      0.8
 // @description  Add some features to ScoreSaber
 // @author       MicroBlock
 // @match        https://scoresaber.com/**
@@ -271,7 +271,13 @@
         return 1;
     })
 
-
+setTimeout(()=>{
+                    appendByTemplate("announcement", {
+                        image: "https://www.beatleader.xyz/assets/logo.png",
+                        text: `Also try BeatLeader - Another leaderboard mod! 也试试BeatLeader —— 另一个排行榜Mod！
+                    <a href="https://www.beatleader.xyz/">BeatLeader</a>`
+                    }, undefined, 1)
+},1000)
     // Check update
     let lastUpd = enterLocalStorage("code.lastUpdateTime", () => { return -1 });
     // if ((new Date().getTime() - lastUpd) > 24 * 60 * 60 * 1000 * 2)
