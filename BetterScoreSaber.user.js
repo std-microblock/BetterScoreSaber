@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BetterScoreSaber
 // @namespace    https://github.com/MicroCBer
-// @version      0.8
+// @version      0.9
 // @description  Add some features to ScoreSaber
 // @author       MicroBlock
 // @match        https://scoresaber.com/**
@@ -271,13 +271,13 @@
         return 1;
     })
 
-setTimeout(()=>{
-                    appendByTemplate("announcement", {
-                        image: "https://www.beatleader.xyz/assets/logo.png",
-                        text: `Also try BeatLeader - Another leaderboard mod! 也试试BeatLeader —— 另一个排行榜Mod！
+    setTimeout(() => {
+        appendByTemplate("announcement", {
+            image: "https://www.beatleader.xyz/assets/logo.png",
+            text: `Also try BeatLeader - Another leaderboard mod! 也试试BeatLeader —— 另一个排行榜Mod！
                     <a href="https://www.beatleader.xyz/">BeatLeader</a>`
-                    }, undefined, 1)
-},1000)
+        }, undefined, 1)
+    }, 1000)
     // Check update
     let lastUpd = enterLocalStorage("code.lastUpdateTime", () => { return -1 });
     // if ((new Date().getTime() - lastUpd) > 24 * 60 * 60 * 1000 * 2)
@@ -357,10 +357,10 @@ setTimeout(()=>{
             setTimeout(resolve, 1000);
         })
 
-        await waitFor(".player-link");
+        await waitFor(".player");
 
-        let playerName = $(".player-link").attr("title");
-        let playerId = $(".player-link").attr("href").split("/").slice(-1);
+        let playerName = $(".profile-picture").find("img").attr("alt").replace("'s profile picture", '');
+        let playerId = document.location.pathname?.split('/')?.[2];
 
         $(".songs").find(".table-item").each(async function (index, item) {
 
@@ -399,7 +399,8 @@ setTimeout(()=>{
 
         match("/u/", async () => {
             await waitFor(".profile-picture")
-            let playerName = $(".player-link span").text(), followedPlayers = JSON.parse(GM_getValue(`followedPlayers`, "{}"));
+            let playerName = $(".profile-picture").find("img").attr("alt").replace("'s profile picture", '');
+            let followedPlayers = JSON.parse(GM_getValue(`followedPlayers`, "{}"));
             let me = GM_getValue(`me`, "")
             $("._BSS_profileBtn").remove()
             appendByTemplate("profileBtn", {
