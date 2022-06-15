@@ -6,7 +6,7 @@
 // @author       MicroBlock
 // @match        https://scoresaber.com/**
 // @icon         https://s1.ax1x.com/2021/12/11/oof1c6.png
-// @require      https://cdn.jsdelivr.net/gh/jquery/jquery@3.2.1/dist/jquery.min.js
+// @require      https://code.jquery.com/jquery-3.6.0.min.js
 // @connect      beatsaver.com
 // @grant        GM_xmlhttpRequest
 // @grant        GM_download
@@ -396,6 +396,8 @@
         function match(url, fn = () => { }) {
             if (pathName.startsWith(url)) fn.call();
         }
+        
+        $("._BSS_floatingWindow").remove()
 
         match("/u/", async () => {
             await waitFor(".profile-picture")
