@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BetterScoreSaber
 // @namespace    https://github.com/MicroCBer
-// @version      0.9
+// @version      0.10
 // @description  Add some features to ScoreSaber
 // @author       MicroBlock
 // @match        https://scoresaber.com/**
